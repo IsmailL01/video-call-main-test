@@ -1,0 +1,44 @@
+Установка Docker и Git (Linux)
+
+# Обновляем пакеты
+sudo apt update && sudo apt upgrade -y
+
+# Устанавливаем Git и зависимости для Docker
+sudo apt install -y git curl ca-certificates gnupg
+
+# Добавляем ключи Docker
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Добавляем репозиторий
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Финальная установка Docker
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Разрешаем запуск без sudo (перезайди в терминал после этого!)
+sudo usermod -aG docker $USER
+
+#  Установка сертификатов
+
+mkdir -p certs
+mkcert -key-file certs/localhost-key.pem -cert-file certs/localhost.pem localhost 
+
+Клонирование и настройка проекта
+
+# Клонируем репозиторий (замени URL на свой)
+git clone https://github.com/azimut-projects/video-call.git
+
+
+Запуск всего приложения
+
+# Сборка образов и запуск всех контейнеров (Бэк, Фронт, БД)
+docker compose up --build -d
+
+# Создание таблиц в базе данных
+docker compose exec backend python manage.py migrate
+
+# Создание администратора (попросит логин/пароль в терминале)
+docker compose exec backend python manage.py createsuperuser
